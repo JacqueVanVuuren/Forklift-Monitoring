@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <title>Goscor</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: #111c2f;
+      --card2: #16233a;
+      --line: #26364f;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --orange: #f97316;
+      --green: #22c55e;
+      --shadow: 0 14px 35px rgba(0,0,0,.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,.16), transparent 32%),
+        radial-gradient(circle at top right, rgba(249,115,22,.10), transparent 30%),
+        var(--bg);
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 540px;
+      min-height: 100vh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 16px 16px 10px 16px;
+      background: linear-gradient(180deg, rgba(7,17,31,.98), rgba(7,17,31,.88));
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .app-title-row { display: flex; align-items: center; gap: 12px; }
+
+    .logo-img {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(14,165,233,.25);
+    }
+
+    .title { font-size: 20px; font-weight: 900; letter-spacing: -.3px; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .content {
+      flex: 1;
+      padding: 14px 14px 92px 14px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .screen { display: none; gap: 14px; }
+    .screen.active { display: grid; }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #dff7ff;
+    }
+
+    .hint { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .forklift-stage {
+      height: 118px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(56,189,248,.10), rgba(2,6,23,.16)),
+        rgba(2,6,23,.38);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+.floor-line {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 24px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(226,232,240,.35);
+    }
+
+    .box-load {
+      position: absolute;
+      right: 22px;
+      bottom: 44px;
+      min-width: 86px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(2,6,23,.82);
+      border: 2px solid rgba(56,189,248,.55);
+      color: #dff7ff;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 5px 8px;
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1.15;
+      box-shadow: 0 12px 26px rgba(0,0,0,.28);
+      backdrop-filter: blur(8px);
+      animation: loadLift 5s ease-in-out infinite;
+      z-index: 4;
+    }
+
+    .box-load span {
+      display: block;
+      color: var(--orange);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+.forklift-anim {
+      position: absolute;
+      left: 10px;
+      bottom: 22px;
+      width: 118px;
+      height: 72px;
+      animation: forkliftDrive 5s ease-in-out infinite;
+    }
+
+    .forklift-body {
+      position: absolute;
+      left: 4px;
+      bottom: 14px;
+      width: 58px;
+      height: 27px;
+      border-radius: 8px 12px 7px 7px;
+      background: #f97316;
+    }
+
+    .forklift-body::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      width: 28px;
+      height: 8px;
+      border-radius: 4px;
+      background: #fb923c;
+    }
+
+    .forklift-roof {
+      position: absolute;
+      left: 28px;
+      bottom: 44px;
+      width: 36px;
+      height: 6px;
+      border-radius: 4px;
+      background: #38bdf8;
+    }
+
+    .forklift-post-a {
+      position: absolute;
+      left: 31px;
+      bottom: 33px;
+      width: 5px;
+      height: 22px;
+      border-radius: 3px;
+      background: #38bdf8;
+      transform: rotate(16deg);
+      transform-origin: bottom;
+    }
+
+    .forklift-post-b {
+      position: absolute;
+      left: 53px;
+      bottom: 31px;
+      width: 5px;
+      height: 25px;
+      border-radius: 3px;
+      background: #38bdf8;
+      transform: rotate(-11deg);
+      transform-origin: bottom;
+    }
+
+    .forklift-mast {
+      position: absolute;
+      left: 70px;
+      bottom: 12px;
+      width: 8px;
+      height: 58px;
+      border-radius: 3px;
+      background: #f8fafc;
+    }
+
+    .forklift-mast::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 0;
+      width: 8px;
+      height: 58px;
+      border-radius: 3px;
+      background: #f8fafc;
+    }
+
+    .forklift-carriage {
+      position: absolute;
+      left: 66px;
+      bottom: 25px;
+      width: 34px;
+      height: 12px;
+      border-radius: 4px;
+      background: #38bdf8;
+      animation: forksLift 5s ease-in-out infinite;
+    }
+
+    .forklift-fork-a, .forklift-fork-b {
+      position: absolute;
+      left: 86px;
+      width: 32px;
+      height: 4px;
+      border-radius: 4px;
+      background: #38bdf8;
+      animation: forksLift 5s ease-in-out infinite;
+    }
+
+    .forklift-fork-a { bottom: 30px; }
+    .forklift-fork-b { bottom: 22px; }
+
+    .wheel {
+      position: absolute;
+      bottom: 6px;
+      border-radius: 50%;
+      background: #03111f;
+      border: 3px solid #f8fafc;
+      animation: wheelSpin 1.2s linear infinite;
+    }
+
+    .wheel::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 3px;
+      bottom: 3px;
+      width: 2px;
+      background: #38bdf8;
+      transform: translateX(-50%);
+    }
+
+    .wheel.big { left: 12px; width: 24px; height: 24px; }
+    .wheel.small { left: 50px; bottom: 8px; width: 20px; height: 20px; }
+
+    @keyframes forkliftDrive {
+      0%, 12% { transform: translateX(0); }
+      38%, 66% { transform: translateX(calc(100vw - 210px)); }
+      90%, 100% { transform: translateX(0); }
+    }
+
+    @media (min-width: 540px) {
+      @keyframes forkliftDrive {
+        0%, 12% { transform: translateX(0); }
+        38%, 66% { transform: translateX(285px); }
+        90%, 100% { transform: translateX(0); }
+      }
+    }
+
+    @keyframes forksLift {
+      0%, 35% { transform: translateY(0); }
+      48%, 68% { transform: translateY(-28px); }
+      82%, 100% { transform: translateY(0); }
+    }
+
+    @keyframes loadLift {
+      0%, 36% { transform: translateY(0); }
+      49%, 68% { transform: translateY(-28px); }
+      82%, 100% { transform: translateY(0); }
+    }
+
+    @keyframes wheelSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      padding-left: 2px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(2,6,23,.74);
+      color: var(--text);
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+    }
+
+    .field { display: grid; gap: 4px; }
+    .field-grid { display: grid; gap: 12px; }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 18px;
+      padding: 15px 10px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      color: #03111f;
+      background: var(--accent);
+      box-shadow: 0 12px 28px rgba(56,189,248,.22);
+    }
+
+    button.secondary-action {
+      background: var(--orange);
+      color: #1b0b00;
+      box-shadow: 0 12px 28px rgba(249,115,22,.18);
+    }
+
+    button.pdf-action {
+      background: #22c55e;
+      color: #02130a;
+      box-shadow: 0 12px 28px rgba(34,197,94,.18);
+    }
+
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .status {
+      min-height: 44px;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(2,6,23,.48);
+      border: 1px solid rgba(255,255,255,.07);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .status.ok { color: #86efac; border-color: rgba(34,197,94,.35); }
+    .status.bad { color: #fca5a5; border-color: rgba(239,68,68,.35); }
+    .status.warn { color: #fdba74; border-color: rgba(249,115,22,.35); }
+
+    .summary-single {
+      background: rgba(2,6,23,.48);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .summary-value {
+      color: var(--accent);
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -.6px;
+    }
+
+    .chart-card {
+      background: #f8fafc;
+      color: #0f172a;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 16px 35px rgba(0,0,0,.22);
+    }
+
+    .chart-header {
+      padding: 13px 14px 0 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chart-title { font-weight: 900; font-size: 14px; }
+
+    .chart-pill {
+      background: #e0f2fe;
+      color: #075985;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .chart { height: 330px; width: 100%; }
+
+
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(2,6,23,.74);
+      color: var(--text);
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+    }
+
+    .fleet-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .fleet-item {
+      background: rgba(2,6,23,.48);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .fleet-name {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .fleet-map {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .small-button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .small-button-row button {
+      padding: 10px;
+      font-size: 12px;
+      border-radius: 14px;
+      box-shadow: none;
+    }
+
+    .delete-action {
+      background: #ef4444;
+      color: #fff;
+    }
+
+
+    .filter-input {
+      margin-bottom: 7px;
+      background: rgba(15,23,42,.92);
+    }
+
+    .filter-help {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+
+    .forklift-load-screen {
+      display: none;
+      text-align: center;
+      gap: 14px;
+    }
+
+    .forklift-load-screen.show {
+      display: grid !important;
+    }
+
+    .forklift-main-content.hidden {
+      display: none !important;
+    }
+
+    .loader-ring {
+      width: 78px;
+      height: 78px;
+      margin: 8px auto 0 auto;
+      border-radius: 50%;
+      border: 8px solid rgba(148,163,184,.22);
+      border-top-color: var(--accent);
+      border-right-color: var(--orange);
+      animation: spinLoader 1s linear infinite;
+    }
+
+    .progress-track {
+      height: 14px;
+      width: 100%;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(2,6,23,.58);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--orange));
+      transition: width .2s ease;
+    }
+
+    .progress-text {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    @keyframes spinLoader {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+
+    .github-config-status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .github-warning {
+      color: #fdba74;
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+
+    #dailySummaryCard,
+    #donutChartCard {
+      display: none !important;
+    }
+
+
+    .install-button {
+      margin-top: 12px;
+      background: var(--green);
+      color: #02130a;
+      box-shadow: 0 12px 28px rgba(34,197,94,.18);
+    }
+
+    .install-status {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      width: calc(100% - 20px);
+      max-width: 510px;
+      background: rgba(15,23,42,.94);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
+      backdrop-filter: blur(15px);
+      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      z-index: 40;
+    }
+
+    .nav-btn {
+      box-shadow: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 18px;
+      padding: 10px 6px;
+      display: grid;
+      gap: 3px;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .nav-btn span { font-size: 20px; line-height: 1; }
+    .nav-btn.active { background: rgba(56,189,248,.16); color: #e0f7ff; }
+
+    .install-note { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+    .monthly-only { display: none; }
+    .daily-loaded .monthly-only { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .forklift-anim, .box-load, .forklift-carriage, .forklift-fork-a, .forklift-fork-b, .wheel {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="app-title-row">
+        <img class="logo-img" src="forklift-lift-icon-192.png" alt="Forklift app icon">
+        <div>
+          <div class="title">Goscor</div>
+          <div class="subtitle"></div>
+        </div>
+      </div>
+    </div>
+
+    <main class="content">
+      <section id="homeScreen" class="screen active">
+        <div class="card">
+          <div class="forklift-stage">
+            <div class="floor-line"></div>
+            <div class="box-load">Used today<span id="animationHoursValue">--</span></div>
+            <div class="forklift-anim">
+              <div class="forklift-roof"></div>
+              <div class="forklift-post-a"></div>
+              <div class="forklift-post-b"></div>
+              <div class="forklift-body"></div>
+              <div class="forklift-mast"></div>
+              <div class="forklift-carriage"></div>
+              <div class="forklift-fork-a"></div>
+              <div class="forklift-fork-b"></div>
+              <div class="wheel big"></div>
+              <div class="wheel small"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="reportCard" class="card">
+          <div class="section-title">Daily Report</div>
+
+          <div class="field">
+            <label for="activeForkliftSelect">Select forklift</label>
+            <select id="activeForkliftSelect" onchange="selectActiveForklift()"></select>
+          </div>
+
+          <div class="field" style="margin-top:10px;">
+            <label for="selectedDate">Select date</label>
+            <input type="date" id="selectedDate">
+          </div>
+
+          <div class="button-row">
+            <button id="showDataBtn" onclick="loadDailyReport()">Show Daily Report</button>
+            <button id="showMonthlyBtn" class="secondary-action" onclick="loadMonthlyReport()">Show Monthly Report</button>
+          </div>
+
+          <button id="downloadPdfBtn" class="pdf-action" style="margin-top:10px;" onclick="downloadPdfReport()">Download PDF</button>
+
+          <div id="statusLine" class="status" style="margin-top:12px;">Ready.</div>
+        </div>
+
+        <div id="dailySummaryCard" class="card">
+          <div class="section-title">Daily Summary</div>
+          <div class="summary-single">
+            <div class="summary-label">Total use per hour</div>
+            <div id="totalUsedValue" class="summary-value">--</div>
+          </div>
+        </div>
+
+        <div id="monthlySummaryCard" class="card" style="display:none;">
+          <div class="section-title">Monthly Summary</div>
+          <div class="summary-single">
+            <div class="summary-label">Total use per month</div>
+            <div id="monthlyTotalValue" class="summary-value">--</div>
+          </div>
+        </div>
+
+        <div id="sensorChartCard" class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">All Three Sensors</div>
+            <div id="selectedDatePill" class="chart-pill">--</div>
+          </div>
+          <div id="sensorLineChart" class="chart"></div>
+        </div>
+
+        <div id="donutChartCard" class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">Daily Usage Split</div>
+            <div id="usedHoursPill" class="chart-pill">--</div>
+          </div>
+          <div id="usageDonutChart" class="chart"></div>
+        </div>
+      </section>
+      <section id="settingsScreen" class="screen">
+        <div id="forkliftLoadScreen" class="card forklift-load-screen">
+          <div class="section-title">Loading Devices</div>
+          <div class="loader-ring"></div>
+          <div class="progress-track">
+            <div id="forkliftLoadProgressFill" class="progress-fill"></div>
+          </div>
+          <div id="forkliftLoadProgressText" class="progress-text">Starting device load...</div>
+        </div>
+
+        <div id="forkliftMainContent" class="forklift-main-content">
+
+        
+        <div style="display:none;">
+          <input id="serverUrl" value="https://thingsboard.intarget.mobi">
+          <input id="username" value="iotiapps@gmail.com">
+          <input id="password" type="password" value="u3m!0t!sw@!lB@$$u3m">
+          <input id="maxOffSec" type="number" value="180">
+        </div>
+
+<div class="card">
+          <div class="section-title">Config Sync</div>
+          <div class="hint">
+            Save or load the forklift setup file.
+          </div>
+
+          <div style="display:none;">
+            <input id="githubOwner" value="JacqueVanVuuren">
+            <input id="githubRepo" value="Forklift-Monitoring">
+            <input id="githubBranch" value="main">
+            <input id="githubConfigPath" value="forklifts.json">
+          </div>
+
+          <div class="field-grid" style="margin-top:14px;">
+            <div class="field">
+              <label for="githubToken">Config token</label>
+              <input id="githubToken" type="password" placeholder="Paste token here">
+            </div>
+          </div>
+
+          <button style="margin-top:10px;" onclick="saveGitHubSettings()">Save Token</button>
+
+          <div class="button-row">
+            <button onclick="loadForkliftsFromGitHub()">Load Config</button>
+            <button class="secondary-action" onclick="saveForkliftsToGitHub()">Save Config</button>
+          </div>
+
+          <div id="githubConfigStatus" class="github-config-status">Config ready.</div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Add Forklift</div>
+          <div class="hint">
+            Give the forklift a name, then select one ThingsBoard device for traction, one for steering, and one for hydraulics.
+          </div>
+
+          <div class="field-grid" style="margin-top:14px;">
+            <div class="field">
+              <label for="forkliftNameInput">Forklift name</label>
+              <input id="forkliftNameInput" placeholder="Example: Forklift 1">
+            </div>
+
+            <div class="field">
+              <label for="tractionDeviceFilter">Traction device</label>
+              <input id="tractionDeviceFilter" class="filter-input" placeholder="Type to filter traction device" oninput="filterDropdown('traction')">
+              <select id="tractionDeviceSelect"></select>
+              <div class="filter-help">Type part of the device name or ID, then select from the filtered dropdown.</div>
+            </div>
+
+            <div class="field">
+              <label for="steeringDeviceFilter">Steering device</label>
+              <input id="steeringDeviceFilter" class="filter-input" placeholder="Type to filter steering device" oninput="filterDropdown('steering')">
+              <select id="steeringDeviceSelect"></select>
+              <div class="filter-help">Type part of the device name or ID, then select from the filtered dropdown.</div>
+            </div>
+
+            <div class="field">
+              <label for="hydraulicsDeviceFilter">Hydraulics device</label>
+              <input id="hydraulicsDeviceFilter" class="filter-input" placeholder="Type to filter hydraulics device" oninput="filterDropdown('hydraulics')">
+              <select id="hydraulicsDeviceSelect"></select>
+              <div class="filter-help">Type part of the device name or ID, then select from the filtered dropdown.</div>
+            </div>
+          </div>
+
+          <button style="margin-top:14px;" onclick="saveForkliftProfile()">Save Forklift</button>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Forklifts</div>
+          <div id="fleetList" class="fleet-list"></div>
+        </div>
+      
+        </div>
+      </section>
+
+<section id="helpScreen" class="screen">
+        <div class="card">
+          <div class="section-title">Install App</div>
+          <div class="hint">
+            Press the button below to install this app on Android or Windows.
+          </div>
+
+          <button id="installAppBtn" class="install-button" onclick="installAppNow()">Install App</button>
+
+          <div id="installStatus" class="install-status">
+            Waiting for browser install option...
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" onclick="showScreen('homeScreen', this)"><span>📊</span>Report</button>
+      <button class="nav-btn" onclick="showScreen('settingsScreen', this)"><span>🚜</span>Forklifts</button>
+      <button class="nav-btn" onclick="showScreen('helpScreen', this)"><span>📱</span>Install</button>
+    </nav>
+  </div>
+
+<script>
+google.charts.load("current", { packages:["corechart"] });
+
+const STORAGE_KEY = "goscor_forklift_daily_monthly_settings_v1";
+let jwtToken = "";
+let chartsReady = false;
+let lastDayData = null;
+let currentReportType = "";
+let currentReportDate = "";
+let currentDailyHours = null;
+let currentMonthlyHours = null;
+let availableDevices = [];
+let forkliftProfiles = [];
+let activeForkliftIndex = 0;
+let githubConfigSettings = {
+  owner: "JacqueVanVuuren",
+  repo: "Forklift-Monitoring",
+  branch: "main",
+  path: "forklifts.json",
+  token: ""
+};
+let forkliftDevicesLoaded = false;
+let forkliftDevicesLoading = false;
+
+google.charts.setOnLoadCallback(function() {
+  chartsReady = true;
+});
+
+function $(id) { return document.getElementById(id); }
+
+function showScreen(screenId, btn) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  $(screenId).classList.add("active");
+  btn.classList.add("active");
+
+  if (screenId === "settingsScreen") {
+    startForkliftDeviceLoadIfNeeded();
+  }
+
+  if (screenId === "homeScreen" && lastDayData && $("sensorChartCard").style.display !== "none") {
+    setTimeout(() => drawDailyCharts(lastDayData), 120);
+  }
+}
+
+function setStatus(message, type) {
+  const el = $("statusLine");
+  el.className = "status";
+  if (type) el.classList.add(type);
+  el.textContent = message;
+}
+
+function getSettings() {
+  return {
+    serverUrl: $("serverUrl").value.trim().replace(/\/$/, ""),
+    username: $("username").value.trim(),
+    password: $("password").value,
+    maxOffSec: Number($("maxOffSec").value) || 180
+  };
+}
+
+function saveAllLocalData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    settings: getSettings(),
+    forkliftProfiles,
+    activeForkliftIndex,
+    githubConfigSettings
+  }));
+}
+
+function saveSettings() {
+  saveAllLocalData();
+  setStatus("Settings saved on this phone.", "ok");
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (!raw) {
+      forkliftProfiles = [{
+        name: "Demo Forklift",
+        tractionId: "853a25b0-93cb-11f0-b948-250c0a2e7a69",
+        steeringId: "dd92d390-9396-11f0-b948-250c0a2e7a69",
+        hydraulicsId: "ff4991e0-4c33-11f0-a279-b9a1de9cfb8c",
+        tractionName: "Traction",
+        steeringName: "Steering",
+        hydraulicsName: "Hydraulics"
+      }];
+      activeForkliftIndex = 0;
+      return;
+    }
+
+    const stored = JSON.parse(raw);
+    const s = stored.settings || stored;
+
+    if (s.serverUrl) $("serverUrl").value = s.serverUrl;
+    if (s.username) $("username").value = s.username;
+    if (s.password) $("password").value = s.password;
+    if (s.maxOffSec) $("maxOffSec").value = s.maxOffSec;
+
+    forkliftProfiles = Array.isArray(stored.forkliftProfiles) ? stored.forkliftProfiles : [];
+    activeForkliftIndex = Number(stored.activeForkliftIndex) || 0;
+
+    if (stored.githubConfigSettings) {
+      githubConfigSettings = Object.assign(githubConfigSettings, stored.githubConfigSettings);
+    }
+
+    if (!forkliftProfiles.length && s.device1 && s.device2 && s.device3) {
+      forkliftProfiles = [{
+        name: "Demo Forklift",
+        tractionId: s.device1,
+        steeringId: s.device2,
+        hydraulicsId: s.device3,
+        tractionName: "Traction",
+        steeringName: "Steering",
+        hydraulicsName: "Hydraulics"
+      }];
+    }
+
+    if (!forkliftProfiles.length) {
+      forkliftProfiles = [{
+        name: "Demo Forklift",
+        tractionId: "853a25b0-93cb-11f0-b948-250c0a2e7a69",
+        steeringId: "dd92d390-9396-11f0-b948-250c0a2e7a69",
+        hydraulicsId: "ff4991e0-4c33-11f0-a279-b9a1de9cfb8c",
+        tractionName: "Traction",
+        steeringName: "Steering",
+        hydraulicsName: "Hydraulics"
+      }];
+    }
+  } catch (e) {
+    console.warn("Could not load settings", e);
+  }
+}
+
+function getActiveForklift() {
+  if (!forkliftProfiles.length) {
+    throw new Error("No forklift saved. Open Forklifts, load devices, and save a forklift first.");
+  }
+
+  const selectedIndex = Number($("activeForkliftSelect").value);
+  const index = Number.isFinite(selectedIndex) ? selectedIndex : activeForkliftIndex;
+  const profile = forkliftProfiles[index];
+
+  if (!profile) throw new Error("Selected forklift was not found.");
+  if (!profile.tractionId || !profile.steeringId || !profile.hydraulicsId) {
+    throw new Error("Selected forklift needs traction, steering, and hydraulics devices.");
+  }
+
+  activeForkliftIndex = index;
+  return profile;
+}
+
+function deviceNameById(id) {
+  const found = availableDevices.find(d => d.id === id);
+  return found ? found.name : id;
+}
+
+function getRoleSelectId(role) {
+  if (role === "traction") return "tractionDeviceSelect";
+  if (role === "steering") return "steeringDeviceSelect";
+  return "hydraulicsDeviceSelect";
+}
+
+function getRoleFilterId(role) {
+  if (role === "traction") return "tractionDeviceFilter";
+  if (role === "steering") return "steeringDeviceFilter";
+  return "hydraulicsDeviceFilter";
+}
+
+function populateDeviceSelects() {
+  ["traction", "steering", "hydraulics"].forEach(role => {
+    const filter = $(getRoleFilterId(role));
+    if (filter) filter.value = "";
+    fillDropdown(role, "");
+  });
+}
+
+function filterDropdown(role) {
+  const filter = $(getRoleFilterId(role));
+  const query = filter ? filter.value.trim().toLowerCase() : "";
+  fillDropdown(role, query);
+}
+
+function fillDropdown(role, query) {
+  const select = $(getRoleSelectId(role));
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  if (!availableDevices.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Press Load Devices first";
+    select.appendChild(option);
+    return;
+  }
+
+  const matches = availableDevices
+    .filter(device => {
+      if (!query) return true;
+      const haystack = (String(device.name || "") + " " + String(device.id || "")).toLowerCase();
+      return haystack.includes(query);
+    });
+
+  if (!matches.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No matching devices";
+    select.appendChild(option);
+    return;
+  }
+
+  matches.forEach(device => {
+    const option = document.createElement("option");
+    option.value = device.id;
+    option.textContent = device.name + " — " + device.id;
+    select.appendChild(option);
+  });
+}
+
+function renderForkliftSelectors() {
+  const activeSelect = $("activeForkliftSelect");
+  if (!activeSelect) return;
+
+  activeSelect.innerHTML = "";
+
+  if (!forkliftProfiles.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No forklifts saved";
+    activeSelect.appendChild(option);
+    return;
+  }
+
+  forkliftProfiles.forEach((profile, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = profile.name || ("Forklift " + (index + 1));
+    if (index === activeForkliftIndex) option.selected = true;
+    activeSelect.appendChild(option);
+  });
+}
+
+function renderFleetList() {
+  const list = $("fleetList");
+  if (!list) {
+    renderForkliftSelectors();
+    return;
+  }
+
+  if (!forkliftProfiles.length) {
+    list.innerHTML = '<div class="hint">No forklifts saved yet.</div>';
+    renderForkliftSelectors();
+    return;
+  }
+
+  list.innerHTML = forkliftProfiles.map((f, index) => `
+    <div class="fleet-item">
+      <div class="fleet-name">${escapeHtml(f.name || ("Forklift " + (index + 1)))}</div>
+      <div class="fleet-map">
+        Traction: ${escapeHtml(f.tractionName || f.tractionId)}<br>
+        Steering: ${escapeHtml(f.steeringName || f.steeringId)}<br>
+        Hydraulics: ${escapeHtml(f.hydraulicsName || f.hydraulicsId)}
+      </div>
+      <div class="small-button-row">
+        <button onclick="makeForkliftActive(${index})">Use</button>
+        <button class="delete-action" onclick="deleteForkliftProfile(${index})">Delete</button>
+      </div>
+    </div>
+  `).join("");
+
+  renderForkliftSelectors();
+}
+
+function selectActiveForklift() {
+  const value = Number($("activeForkliftSelect").value);
+  if (Number.isFinite(value)) {
+    activeForkliftIndex = value;
+    saveAllLocalData();
+  }
+}
+
+function makeForkliftActive(index) {
+  activeForkliftIndex = index;
+  renderFleetList();
+applyGitHubSettingsToUI();
+  saveAllLocalData();
+  setStatus("Selected forklift: " + (forkliftProfiles[index]?.name || "Forklift"), "ok");
+}
+
+function deleteForkliftProfile(index) {
+  if (!confirm("Delete this forklift profile?")) return;
+  forkliftProfiles.splice(index, 1);
+  if (activeForkliftIndex >= forkliftProfiles.length) activeForkliftIndex = 0;
+  renderFleetList();
+  saveAllLocalData();
+}
+
+function saveForkliftProfile() {
+  const name = $("forkliftNameInput").value.trim();
+  const tractionId = $("tractionDeviceSelect").value;
+  const steeringId = $("steeringDeviceSelect").value;
+  const hydraulicsId = $("hydraulicsDeviceSelect").value;
+
+  if (!name) {
+    setStatus("Enter a forklift name.", "bad");
+    return;
+  }
+
+  if (!tractionId || !steeringId || !hydraulicsId) {
+    setStatus("Select traction, steering, and hydraulics devices.", "bad");
+    return;
+  }
+
+  const profile = {
+    name,
+    tractionId,
+    steeringId,
+    hydraulicsId,
+    tractionName: deviceNameById(tractionId),
+    steeringName: deviceNameById(steeringId),
+    hydraulicsName: deviceNameById(hydraulicsId)
+  };
+
+  const existingIndex = forkliftProfiles.findIndex(f => String(f.name).toLowerCase() === name.toLowerCase());
+
+  if (existingIndex >= 0) {
+    forkliftProfiles[existingIndex] = profile;
+    activeForkliftIndex = existingIndex;
+  } else {
+    forkliftProfiles.push(profile);
+    activeForkliftIndex = forkliftProfiles.length - 1;
+  }
+
+  $("forkliftNameInput").value = "";
+  renderFleetList();
+  saveAllLocalData();
+  setStatus("Forklift saved: " + name, "ok");
+}
+
+
+function showForkliftLoading(show) {
+  const loader = $("forkliftLoadScreen");
+  const content = $("forkliftMainContent");
+
+  if (loader) loader.classList.toggle("show", !!show);
+  if (content) content.classList.toggle("hidden", !!show);
+}
+
+function updateForkliftLoadingProgress(percent, text) {
+  const fill = $("forkliftLoadProgressFill");
+  const label = $("forkliftLoadProgressText");
+
+  if (fill) fill.style.width = Math.max(0, Math.min(100, percent)) + "%";
+  if (label) label.textContent = text;
+}
+
+async function startForkliftDeviceLoadIfNeeded() {
+  if (forkliftDevicesLoaded && availableDevices.length) {
+    showForkliftLoading(false);
+    return;
+  }
+
+  if (forkliftDevicesLoading) {
+    showForkliftLoading(true);
+    return;
+  }
+
+  await loadThingsBoardDevices(true);
+}
+
+async function loadThingsBoardDevices(autoMode = false) {
+  try {
+    forkliftDevicesLoading = true;
+
+    if (autoMode) {
+      showForkliftLoading(true);
+      updateForkliftLoadingProgress(5, "Logging into ThingsBoard...");
+    }
+
+    setStatus("Logging into ThingsBoard...", "warn");
+    await loginToThingsBoard();
+
+    if (autoMode) {
+      updateForkliftLoadingProgress(20, "Connected. Loading devices...");
+    }
+
+    setStatus("Loading devices...", "warn");
+    availableDevices = await fetchThingsBoardDevices(autoMode);
+
+    if (autoMode) {
+      updateForkliftLoadingProgress(95, "Preparing dropdowns...\\nDevices loaded: " + availableDevices.length);
+    }
+
+    populateDeviceSelects();
+    renderFleetList();
+
+    forkliftDevicesLoaded = true;
+
+    if (autoMode) {
+      updateForkliftLoadingProgress(100, "Done. Devices loaded: " + availableDevices.length);
+      setTimeout(() => {
+        showForkliftLoading(false);
+      }, 350);
+    }
+
+    setStatus("Loaded " + availableDevices.length + " devices. All available device pages were loaded; type above the dropdowns to filter.", "ok");
+  } catch (e) {
+    console.error(e);
+    forkliftDevicesLoaded = false;
+    showForkliftLoading(false);
+    setStatus(e.message || String(e), "bad");
+  } finally {
+    forkliftDevicesLoading = false;
+  }
+}
+
+async function fetchThingsBoardDevices(showProgress = false) {
+  const s = getSettings();
+  const allDevices = [];
+  let page = 0;
+  const pageSize = 100;
+
+  while (true) {
+    if (showProgress) {
+      updateForkliftLoadingProgress(
+        Math.min(90, 20 + page),
+        "Loading device page " + (page + 1) + "...\nDevices found so far: " + allDevices.length
+      );
+    }
+
+    const params = new URLSearchParams({
+      pageSize: String(pageSize),
+      page: String(page),
+      sortProperty: "name",
+      sortOrder: "ASC"
+    });
+
+    const response = await fetch(s.serverUrl + "/api/tenant/devices?" + params.toString(), {
+      method: "GET",
+      headers: { "X-Authorization": "Bearer " + jwtToken }
+    });
+
+    if (!response.ok) {
+      const txt = await response.text().catch(() => "");
+      throw new Error("Device list failed. HTTP " + response.status + ". " + txt);
+    }
+
+    const data = await response.json();
+    const rows = Array.isArray(data.data) ? data.data : [];
+
+    rows.forEach(device => {
+      const id = device.id && device.id.id ? device.id.id : "";
+      const name = device.name || device.label || id;
+      if (id) allDevices.push({ id, name });
+    });
+
+    if (!data.hasNext) break;
+    page++;
+  }
+
+  if (!allDevices.length) {
+    throw new Error("No devices returned from ThingsBoard for this user.");
+  }
+
+  return allDevices;
+}
+
+
+function applyGitHubSettingsToUI() {
+  if ($("githubOwner")) $("githubOwner").value = githubConfigSettings.owner || "JacqueVanVuuren";
+  if ($("githubRepo")) $("githubRepo").value = githubConfigSettings.repo || "Forklift-Monitoring";
+  if ($("githubBranch")) $("githubBranch").value = githubConfigSettings.branch || "main";
+  if ($("githubConfigPath")) $("githubConfigPath").value = githubConfigSettings.path || "forklifts.json";
+  if ($("githubToken")) $("githubToken").value = $("githubToken").value || githubConfigSettings.token || "";
+}
+
+function readGitHubSettingsFromUI() {
+  githubConfigSettings = {
+    owner: ($("githubOwner") ? $("githubOwner").value.trim() : "") || githubConfigSettings.owner || "JacqueVanVuuren",
+    repo: ($("githubRepo") ? $("githubRepo").value.trim() : "") || githubConfigSettings.repo || "Forklift-Monitoring",
+    branch: ($("githubBranch") ? $("githubBranch").value.trim() : "") || githubConfigSettings.branch || "main",
+    path: ($("githubConfigPath") ? $("githubConfigPath").value.trim() : "") || githubConfigSettings.path || "forklifts.json",
+    token: ($("githubToken") ? $("githubToken").value.trim() : "") || githubConfigSettings.token
+  };
+  return githubConfigSettings;
+}
+
+function setGitHubStatus(message, type) {
+  const el = $("githubConfigStatus");
+  if (!el) return;
+
+  el.textContent = message;
+  el.style.color = type === "ok" ? "#86efac" : type === "bad" ? "#fca5a5" : "#94a3b8";
+}
+
+
+
+
+function saveGitHubSettings() {
+  readGitHubSettingsFromUI();
+  saveAllLocalData();
+  setGitHubStatus("Config settings saved on this device.", "ok");
+  setStatus("Config settings saved.", "ok");
+}
+
+function getGitHubApiUrl() {
+  const cfg = readGitHubSettingsFromUI();
+
+  if (!cfg.owner || !cfg.repo || !cfg.path || !cfg.token) {
+    throw new Error("Config connection details are missing.");
+  }
+
+  const encodedPath = cfg.path.split("/").map(encodeURIComponent).join("/");
+  return "https://api.github.com/repos/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "/contents/" + encodedPath;
+}
+
+function getForkliftConfigObject() {
+  return {
+    app: "Goscor",
+    updatedAt: new Date().toISOString(),
+    activeForkliftIndex,
+    forkliftProfiles
+  };
+}
+
+function encodeBase64Unicode(text) {
+  return btoa(unescape(encodeURIComponent(text)));
+}
+
+function decodeBase64Unicode(text) {
+  return decodeURIComponent(escape(atob(text)));
+}
+
+async function getGitHubFileSha() {
+  const cfg = readGitHubSettingsFromUI();
+  const url = getGitHubApiUrl() + "?ref=" + encodeURIComponent(cfg.branch);
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "application/vnd.github+json",
+      "Authorization": "Bearer " + cfg.token
+    }
+  });
+
+  if (response.status === 404) return null;
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => "");
+    throw new Error("Config read failed. HTTP " + response.status + ". " + txt);
+  }
+
+  const data = await response.json();
+  return data.sha || null;
+}
+
+async function saveForkliftsToGitHub() {
+  try {
+    const cfg = readGitHubSettingsFromUI();
+    setGitHubStatus("Saving forklift config...", "warn");
+    setStatus("Saving forklift config...", "warn");
+
+    const sha = await getGitHubFileSha();
+    const configText = JSON.stringify(getForkliftConfigObject(), null, 2);
+
+    const body = {
+      message: "Update GOSCOR forklift config",
+      content: encodeBase64Unicode(configText),
+      branch: cfg.branch
+    };
+
+    if (sha) body.sha = sha;
+
+    const response = await fetch(getGitHubApiUrl(), {
+      method: "PUT",
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + cfg.token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const txt = await response.text().catch(() => "");
+      throw new Error("Config save failed. HTTP " + response.status + ". " + txt);
+    }
+
+    saveAllLocalData();
+    setGitHubStatus("Saved config file: " + cfg.path, "ok");
+    setStatus("Forklift config saved.", "ok");
+  } catch (e) {
+    console.error(e);
+    setGitHubStatus(e.message || String(e), "bad");
+    setStatus(e.message || String(e), "bad");
+  }
+}
+
+async function loadForkliftsFromGitHub() {
+  try {
+    const cfg = readGitHubSettingsFromUI();
+    setGitHubStatus("Loading forklift config...", "warn");
+    setStatus("Loading forklift config...", "warn");
+
+    const url = getGitHubApiUrl() + "?ref=" + encodeURIComponent(cfg.branch);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + cfg.token
+      }
+    });
+
+    if (!response.ok) {
+      const txt = await response.text().catch(() => "");
+      throw new Error("Config load failed. HTTP " + response.status + ". " + txt);
+    }
+
+    const data = await response.json();
+    const content = decodeBase64Unicode(String(data.content || "").replace(/\s/g, ""));
+    const config = JSON.parse(content);
+
+    if (!Array.isArray(config.forkliftProfiles)) {
+      throw new Error("Config file does not contain forkliftProfiles.");
+    }
+
+    forkliftProfiles = config.forkliftProfiles;
+    activeForkliftIndex = Number(config.activeForkliftIndex) || 0;
+
+    renderFleetList();
+    renderForkliftSelectors();
+    saveAllLocalData();
+
+    setGitHubStatus("Loaded forklift config.", "ok");
+    setStatus("Forklift config loaded.", "ok");
+  } catch (e) {
+    console.error(e);
+    setGitHubStatus(e.message || String(e), "bad");
+    setStatus(e.message || String(e), "bad");
+  }
+}
+
+
+async function loginToThingsBoard() {
+  const s = getSettings();
+
+  if (!s.serverUrl || !s.username || !s.password) {
+    throw new Error("Server, username, and password are required.");
+  }
+
+  const response = await fetch(s.serverUrl + "/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: s.username, password: s.password })
+  });
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => "");
+    throw new Error("Login failed. HTTP " + response.status + ". " + txt);
+  }
+
+  const data = await response.json();
+  jwtToken = data.token || "";
+
+  if (!jwtToken) {
+    throw new Error("No JWT token returned by ThingsBoard.");
+  }
+
+  return jwtToken;
+}
+
+function dateToLocalDateText(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const d = String(dateObj.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + d;
+}
+
+function startEndForDay(dateText) {
+  const parts = String(dateText).split("-").map(Number);
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+
+  // Match the Apps Script 24-hour day boundary.
+  // Apps Script must be set to Africa/Johannesburg.
+  // South Africa is UTC+2 and has no daylight saving time.
+  const startMs = Date.UTC(y, m - 1, d, 0, 0, 0, 0) - (2 * 60 * 60 * 1000);
+  const endMs = Date.UTC(y, m - 1, d, 23, 59, 59, 999) - (2 * 60 * 60 * 1000);
+
+  return {
+    start: new Date(startMs),
+    end: new Date(endMs)
+  };
+}
+
+function getMonthDateTexts(selectedDateText) {
+  const selected = new Date(selectedDateText + "T00:00:00");
+  const year = selected.getFullYear();
+  const month = selected.getMonth();
+  const days = [];
+  const d = new Date(year, month, 1);
+
+  while (d.getMonth() === month) {
+    days.push(dateToLocalDateText(d));
+    d.setDate(d.getDate() + 1);
+  }
+
+  return days;
+}
+
+async function fetchDeviceData(deviceId, dateText) {
+  const s = getSettings();
+  const range = startEndForDay(dateText);
+
+  // Keep this query the same as the Apps Script version.
+  // Do not add agg/orderBy here, because Apps Script did not use them.
+  const url =
+    s.serverUrl +
+    "/api/plugins/telemetry/DEVICE/" +
+    encodeURIComponent(deviceId) +
+    "/values/timeseries?keys=input" +
+    "&startTs=" + range.start.getTime() +
+    "&endTs=" + range.end.getTime() +
+    "&limit=50000";
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { "X-Authorization": "Bearer " + jwtToken }
+  });
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => "");
+    throw new Error("Telemetry fetch failed for " + deviceId + ". HTTP " + response.status + ". " + txt);
+  }
+
+  const data = await response.json();
+  const arr = Array.isArray(data.input) ? data.input : [];
+
+  return arr.map(r => {
+    const ts = Number(r.ts);
+    const valueNumber = Number(r.value);
+    return {
+      ts: ts,
+      timeText: new Date(ts).toLocaleString(),
+      state: valueNumber === 1 ? "ON" : "OFF",
+      value: valueNumber === 1 ? 1 : 0
+    };
+  }).filter(r => Number.isFinite(r.ts)).sort((a,b) => a.ts - b.ts);
+}
+
+async function getDailyTelemetryData(dateText) {
+  const forklift = getActiveForklift();
+
+  const results = await Promise.all([
+    fetchDeviceData(forklift.tractionId, dateText),
+    fetchDeviceData(forklift.steeringId, dateText),
+    fetchDeviceData(forklift.hydraulicsId, dateText)
+  ]);
+
+  return {
+    date: dateText,
+    forkliftName: forklift.name,
+    traction: results[0],
+    steering: results[1],
+    hydraulics: results[2]
+  };
+}
+
+function setDailyMode() {
+  $("dailySummaryCard").style.display = "";
+  $("monthlySummaryCard").style.display = "none";
+  $("sensorChartCard").style.display = "";
+  $("donutChartCard").style.display = "";
+}
+
+function setMonthlyMode() {
+  $("dailySummaryCard").style.display = "none";
+  $("monthlySummaryCard").style.display = "";
+  $("sensorChartCard").style.display = "none";
+  $("donutChartCard").style.display = "none";
+  if ($("animationHoursValue")) $("animationHoursValue").textContent = "--";
+}
+
+async function loadDailyReport() {
+  const btn1 = $("showDataBtn");
+  const btn2 = $("showMonthlyBtn");
+  btn1.disabled = true;
+  btn2.disabled = true;
+
+  try {
+    const date = $("selectedDate").value;
+    if (!date) {
+      setStatus("Please select a date first.", "bad");
+      return;
+    }
+
+    setDailyMode();
+    setStatus("Logging into ThingsBoard...", "warn");
+    await loginToThingsBoard();
+
+    setStatus("Downloading daily data...", "warn");
+    const dayData = await getDailyTelemetryData(date);
+    lastDayData = dayData;
+
+    setStatus("Daily data downloaded successfully.", "ok");
+    drawDailyCharts(dayData);
+  } catch (e) {
+    console.error(e);
+    setStatus(e.message || String(e), "bad");
+  } finally {
+    btn1.disabled = false;
+    btn2.disabled = false;
+  }
+}
+
+async function loadMonthlyReport() {
+  const btn1 = $("showDataBtn");
+  const btn2 = $("showMonthlyBtn");
+  btn1.disabled = true;
+  btn2.disabled = true;
+
+  try {
+    const date = $("selectedDate").value;
+    if (!date) {
+      setStatus("Please select a date first.", "bad");
+      return;
+    }
+
+    setMonthlyMode();
+    setStatus("Logging into ThingsBoard...", "warn");
+    await loginToThingsBoard();
+
+    const days = getMonthDateTexts(date);
+    let totalSec = 0;
+
+    for (let i = 0; i < days.length; i++) {
+      setStatus("Downloading monthly data: " + days[i] + " (" + (i + 1) + " of " + days.length + ")", "warn");
+      const dayData = await getDailyTelemetryData(days[i]);
+      totalSec += calculateTotalUsageSeconds(dayData, getSettings().maxOffSec);
+    }
+
+    const hours = totalSec / 3600;
+    currentReportType = "monthly";
+    currentReportDate = date;
+    currentMonthlyHours = hours;
+    currentDailyHours = null;
+
+    $("monthlyTotalValue").textContent = hours.toFixed(2) + " h";
+    setStatus("Monthly summary downloaded successfully.", "ok");
+  } catch (e) {
+    console.error(e);
+    setStatus(e.message || String(e), "bad");
+  } finally {
+    btn1.disabled = false;
+    btn2.disabled = false;
+  }
+}
+
+function normalizeSensorEventsForUsage(arr) {
+  return (arr || []).map(r => {
+    let ts;
+    let value;
+
+    // Apps Script format: ["2026-05-01 08:00:00", "ON"]
+    if (Array.isArray(r)) {
+      ts = new Date(r[0]).getTime();
+      value = r[1] === "ON" ? 1 : 0;
+    }
+
+    // GitHub format: { ts: 123456789, state: "ON", value: 1 }
+    else {
+      ts = Number(r.ts);
+      value = (r.state === "ON" || r.value === 1 || String(r.value).trim() === "1") ? 1 : 0;
+    }
+
+    return { ts, value };
+  })
+  .filter(e => Number.isFinite(e.ts))
+  .sort((a, b) => a.ts - b.ts);
+}
+
+function valueAtExactTimestampForUsage(events, timeMs) {
+  // Important: this matches the timestamp-alignment method you described.
+  // When one sensor triggers, the same timestamp is inserted for the other sensors.
+  // If those other sensors did not trigger at that exact timestamp, they must be 0,
+  // not their previous state.
+  for (let i = 0; i < events.length; i++) {
+    if (events[i].ts === timeMs) return events[i].value;
+    if (events[i].ts > timeMs) break;
+  }
+  return 0;
+}
+
+function buildSynchronizedUsageEvents(data) {
+  const traction = normalizeSensorEventsForUsage(data.traction);
+  const steering = normalizeSensorEventsForUsage(data.steering);
+  const hydraulics = normalizeSensorEventsForUsage(data.hydraulics);
+
+  const allTimes = new Set();
+  traction.forEach(e => allTimes.add(e.ts));
+  steering.forEach(e => allTimes.add(e.ts));
+  hydraulics.forEach(e => allTimes.add(e.ts));
+
+  const sortedTimes = Array.from(allTimes).filter(Number.isFinite).sort((a, b) => a - b);
+  const allEvents = [];
+
+  sortedTimes.forEach(ts => {
+    // Synchronized timestamp row:
+    // If traction triggers at this timestamp, steering and hydraulics also get
+    // this timestamp, but they are 0 unless they also triggered at this exact time.
+    allEvents.push({ ts, state: valueAtExactTimestampForUsage(traction, ts), role: 0 });
+    allEvents.push({ ts, state: valueAtExactTimestampForUsage(steering, ts), role: 1 });
+    allEvents.push({ ts, state: valueAtExactTimestampForUsage(hydraulics, ts), role: 2 });
+  });
+
+  allEvents.sort((a, b) => {
+    if (a.ts !== b.ts) return a.ts - b.ts;
+    return a.role - b.role;
+  });
+
+  return allEvents;
+}
+
+function calculateTotalUsageSeconds(data, maxOffSec = 180) {
+  const gapMs = (Number(maxOffSec) || 180) * 1000;
+
+  // Trial adjustment:
+  // The 180 seconds is used to decide whether the next ON keeps the same usage session alive.
+  // When a session finally ends because no new ON appears inside that 180-second window,
+  // count 125 seconds after the last ON, not the full 180 seconds.
+  const finalTailMs = 125 * 1000;
+
+  let onTimes = [];
+
+  [
+    ...(data.traction || []),
+    ...(data.steering || []),
+    ...(data.hydraulics || [])
+  ].forEach(r => {
+    const ts = Number(r.ts);
+    const isOn =
+      r.state === "ON" ||
+      r.value === 1 ||
+      String(r.value).trim() === "1";
+
+    if (Number.isFinite(ts) && isOn) {
+      onTimes.push(ts);
+    }
+  });
+
+  onTimes.sort((a, b) => a - b);
+
+  if (!onTimes.length) return 0;
+
+  let totalMs = 0;
+  let periodStart = onTimes[0];
+  let lastOnTs = onTimes[0];
+
+  for (let i = 1; i < onTimes.length; i++) {
+    const ts = onTimes[i];
+
+    // Any ON from traction, steering, or hydraulics inside 180 seconds keeps usage alive.
+    if (ts - lastOnTs <= gapMs) {
+      lastOnTs = ts;
+    } else {
+      // No ON appeared inside the 180-second check window.
+      // Count only 125 seconds after the last ON for this ended session.
+      totalMs += (lastOnTs + finalTailMs) - periodStart;
+      periodStart = ts;
+      lastOnTs = ts;
+    }
+  }
+
+  // Final session gets the same 125-second tail after the last ON.
+  totalMs += (lastOnTs + finalTailMs) - periodStart;
+
+  // Clamp daily reports to 24 hours maximum.
+  return Math.max(0, Math.min(24 * 3600, Math.round(totalMs / 1000)));
+}
+
+function waitForCharts() {
+  return new Promise(resolve => {
+    if (chartsReady && google.visualization) {
+      resolve();
+      return;
+    }
+    const t = setInterval(() => {
+      if (chartsReady && google.visualization) {
+        clearInterval(t);
+        resolve();
+      }
+    }, 100);
+  });
+}
+
+function valueAtOrBefore(events, timeMs) {
+  let v = 0;
+  for (let i = 0; i < events.length; i++) {
+    if (events[i].ts <= timeMs) v = events[i].value;
+    else break;
+  }
+  return v;
+}
+
+function buildStepTimeline(dayData) {
+  const dayRange = startEndForDay(dayData.date);
+  const startTs = dayRange.start.getTime();
+  const endTs = dayRange.end.getTime();
+
+  const allTimes = new Set([startTs, endTs]);
+
+  (dayData.traction || []).forEach(e => allTimes.add(e.ts));
+  (dayData.steering || []).forEach(e => allTimes.add(e.ts));
+  (dayData.hydraulics || []).forEach(e => allTimes.add(e.ts));
+
+  const sortedTimes = Array.from(allTimes).filter(Number.isFinite).sort((a,b) => a-b);
+  const rows = [];
+
+  for (let i = 0; i < sortedTimes.length; i++) {
+    const ts = sortedTimes[i];
+
+    const current = [
+      new Date(ts),
+      valueAtOrBefore(dayData.traction || [], ts),
+      valueAtOrBefore(dayData.steering || [], ts),
+      valueAtOrBefore(dayData.hydraulics || [], ts)
+    ];
+
+    if (i === 0) {
+      rows.push(current);
+      continue;
+    }
+
+    const previousTs = sortedTimes[i - 1];
+    const justBefore = Math.max(previousTs, ts - 1);
+
+    rows.push([
+      new Date(justBefore),
+      valueAtOrBefore(dayData.traction || [], previousTs),
+      valueAtOrBefore(dayData.steering || [], previousTs),
+      valueAtOrBefore(dayData.hydraulics || [], previousTs)
+    ]);
+
+    rows.push(current);
+  }
+
+  return rows;
+}
+
+async function drawDailyCharts(dayData) {
+  await waitForCharts();
+
+  const s = getSettings();
+  const usedSec = calculateTotalUsageSeconds(dayData, s.maxOffSec);
+  const idleSec = Math.max(0, 24 * 3600 - usedSec);
+  const usedHours = usedSec / 3600;
+
+  currentReportType = "daily";
+  currentReportDate = dayData.date;
+  currentDailyHours = usedHours;
+  currentMonthlyHours = null;
+
+  $("selectedDatePill").textContent = dayData.date;
+  $("usedHoursPill").textContent = usedHours.toFixed(2) + " h";
+  $("totalUsedValue").textContent = usedHours.toFixed(2) + " h";
+  $("animationHoursValue").textContent = usedHours.toFixed(2) + " h";
+
+  const timeline = buildStepTimeline(dayData);
+  const lineData = new google.visualization.DataTable();
+  lineData.addColumn("datetime", "Time");
+  lineData.addColumn("number", "Traction");
+  lineData.addColumn("number", "Steering");
+  lineData.addColumn("number", "Hydraulics");
+  lineData.addRows(timeline);
+
+  new google.visualization.LineChart($("sensorLineChart")).draw(lineData, {
+    backgroundColor: "transparent",
+    chartArea: { width: "82%", height: "68%" },
+    legend: { position: "bottom" },
+    hAxis: {
+      title: "Time",
+      format: "HH:mm",
+      textStyle: { color: "#334155", fontSize: 10 },
+      titleTextStyle: { color: "#334155" }
+    },
+    vAxis: {
+      minValue: 0,
+      maxValue: 1,
+      ticks: [{v:0, f:"OFF"}, {v:1, f:"ON"}],
+      textStyle: { color: "#334155" },
+      titleTextStyle: { color: "#334155" }
+    },
+    lineWidth: 3,
+    pointSize: 0,
+    interpolateNulls: false,
+    colors: ["#f97316", "#38bdf8", "#22c55e"]
+  });
+
+  const donutData = google.visualization.arrayToDataTable([
+    ["State", "Seconds"],
+    ["Used (" + usedHours.toFixed(2) + " h)", usedSec],
+    ["Idle", idleSec]
+  ]);
+
+  new google.visualization.PieChart($("usageDonutChart")).draw(donutData, {
+    title: "",
+    pieHole: 0.62,
+    legend: { position: "bottom" },
+    pieSliceText: "percentage",
+    pieSliceTextStyle: { color: "black", fontSize: 12 },
+    colors: ["#f97316", "#e2e8f0"],
+    chartArea: { width: "92%", height: "82%" },
+    backgroundColor: "transparent"
+  });
+}
+
+
+function downloadPdfReport() {
+  try {
+    const jspdfLib = window.jspdf;
+    if (!jspdfLib || !jspdfLib.jsPDF) {
+      setStatus("PDF library did not load. Check internet connection and try again.", "bad");
+      return;
+    }
+
+    if (!currentReportType) {
+      setStatus("Load a daily or monthly report first, then download the PDF.", "bad");
+      return;
+    }
+
+    const { jsPDF } = jspdfLib;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    const nowText = new Date().toLocaleString();
+    const selectedDate = $("selectedDate").value || currentReportDate || "";
+    const fileDate = selectedDate || dateToLocalDateText(new Date());
+
+    pdf.setFillColor(7, 17, 31);
+    pdf.rect(0, 0, 210, 28, "F");
+
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(20);
+    pdf.setFont(undefined, "bold");
+    pdf.text("Goscor Report", 14, 17);
+
+    pdf.setTextColor(100, 116, 139);
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, "normal");
+    pdf.text("Generated: " + nowText, 14, 34);
+
+    pdf.setTextColor(15, 23, 42);
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, "bold");
+
+    if (currentReportType === "monthly") {
+      const monthDate = new Date(selectedDate + "T00:00:00");
+      const monthName = monthDate.toLocaleString(undefined, { month: "long", year: "numeric" });
+
+      pdf.text("Monthly Summary", 14, 48);
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, "normal");
+      pdf.text("Month: " + monthName, 14, 59);
+
+      pdf.setFillColor(224, 242, 254);
+      pdf.roundedRect(14, 68, 182, 34, 4, 4, "F");
+
+      pdf.setTextColor(7, 89, 133);
+      pdf.setFontSize(12);
+      pdf.text("Total use per month", 22, 80);
+
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFontSize(24);
+      pdf.setFont(undefined, "bold");
+      pdf.text((currentMonthlyHours || 0).toFixed(2) + " h", 22, 95);
+
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, "normal");
+      pdf.text("This PDF was generated directly on the phone from the installed web app.", 14, 284);
+
+      pdf.save("Goscor_monthly_report_" + fileDate + ".pdf");
+      setStatus("Monthly PDF downloaded.", "ok");
+      return;
+    }
+
+    pdf.text("Daily Report", 14, 48);
+    pdf.setFontSize(11);
+    pdf.setFont(undefined, "normal");
+    pdf.text("Date: " + selectedDate, 14, 59);
+
+    pdf.setFillColor(224, 242, 254);
+    pdf.roundedRect(14, 68, 182, 34, 4, 4, "F");
+
+    pdf.setTextColor(7, 89, 133);
+    pdf.setFontSize(12);
+    pdf.text("Total use per hour", 22, 80);
+
+    pdf.setTextColor(15, 23, 42);
+    pdf.setFontSize(24);
+    pdf.setFont(undefined, "bold");
+    pdf.text((currentDailyHours || 0).toFixed(2) + " h", 22, 95);
+
+    pdf.setTextColor(15, 23, 42);
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, "bold");
+    pdf.text("Sensors", 14, 118);
+
+    pdf.setFont(undefined, "normal");
+    pdf.setFontSize(10);
+    pdf.text("Traction, Steering, and Hydraulics were used to calculate the total usage.", 14, 128);
+    pdf.text("The app graph shows these sensors as immediate ON/OFF step changes.", 14, 136);
+
+    if (lastDayData) {
+      const tractionCount = (lastDayData.traction || []).length;
+      const steeringCount = (lastDayData.steering || []).length;
+      const hydraulicsCount = (lastDayData.hydraulics || []).length;
+
+      pdf.text("Traction events: " + tractionCount, 14, 150);
+      pdf.text("Steering events: " + steeringCount, 14, 158);
+      pdf.text("Hydraulics events: " + hydraulicsCount, 14, 166);
+    }
+
+    pdf.setTextColor(100, 116, 139);
+    pdf.setFontSize(9);
+    pdf.text("This PDF was generated directly on the phone from the installed web app.", 14, 284);
+
+    pdf.save("Goscor_daily_report_" + fileDate + ".pdf");
+    setStatus("Daily PDF downloaded.", "ok");
+  } catch (e) {
+    console.error(e);
+    setStatus("PDF download failed: " + (e.message || String(e)), "bad");
+  }
+}
+
+
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function setDefaultDate() {
+  const today = new Date();
+  $("selectedDate").value = dateToLocalDateText(today);
+}
+
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", function(event) {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+
+  const status = $("installStatus");
+  if (status) status.textContent = "Ready to install. Press Install App.";
+});
+
+window.addEventListener("appinstalled", function() {
+  deferredInstallPrompt = null;
+
+  const status = $("installStatus");
+  const btn = $("installAppBtn");
+
+  if (status) status.textContent = "App installed successfully.";
+  if (btn) btn.disabled = true;
+});
+
+async function installAppNow() {
+  const status = $("installStatus");
+
+  if (!deferredInstallPrompt) {
+    if (status) {
+      status.textContent =
+        "Install option is not available right now.\\n\\n" +
+        "This usually means the app is already installed, the browser has not offered the install prompt yet, or the page is not being opened from the live GitHub Pages HTTPS link.\\n\\n" +
+        "Refresh once and try again.";
+    }
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+
+  const choice = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+
+  if (choice && choice.outcome === "accepted") {
+    if (status) status.textContent = "Installing app...";
+  } else {
+    if (status) status.textContent = "Install cancelled.";
+  }
+}
+
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(err => console.warn("Service worker failed", err));
+  });
+}
+
+loadSettings();
+setDefaultDate();
+populateDeviceSelects();
+renderFleetList();
+applyGitHubSettingsToUI();
+</script>
+</body>
+</html>
