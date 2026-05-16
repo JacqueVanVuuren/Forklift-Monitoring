@@ -1,0 +1,16 @@
+{
+  "app": "Goscor",
+  "updatedAt": "2026-05-16T21:14:48.288Z",
+  "activeForkliftIndex": 0,
+  "forkliftProfiles": [
+    {
+      "name": "Demo Forklift",
+      "tractionId": "853a25b0-93cb-11f0-b948-250c0a2e7a69",
+      "steeringId": "dd92d390-9396-11f0-b948-250c0a2e7a69",
+      "hydraulicsId": "ff4991e0-4c33-11f0-a279-b9a1de9cfb8c",
+      "tractionName": "Traction",
+      "steeringName": "Steering",
+      "hydraulicsName": "Hydraulics"
+    }
+  ]
+}
